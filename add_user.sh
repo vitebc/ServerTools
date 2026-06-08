@@ -109,19 +109,27 @@ case $SSH_MODE in
         ;;
     generate)
         HAS_KEY=true
+        SSH_DIR="/home/$USERNAME/.ssh"
+        KEY_FILE="$SSH_DIR/id_ed25519"
         echo "Генерирую ключи ed25519..."
-        TMP_KEY=$(mktemp)
-        ssh-keygen -t ed25519 -f "$TMP_KEY" -N "" -C "$USERNAME@$(hostname)" -q
-        SSH_KEY=$(cat "${TMP_KEY}.pub")
-        PRIV_KEY=$(cat "$TMP_KEY")
+        mkdir -p "$SSH_DIR"
+        ssh-keygen -t ed25519 -f "$KEY_FILE" -N "" -C "$USERNAME@$(hostname)" -q
+        SSH_KEY=$(cat "${KEY_FILE}.pub")
+        PRIV_KEY=$(cat "$KEY_FILE")
+        chmod 600 "$KEY_FILE"
+        chmod 644 "${KEY_FILE}.pub"
+        chown -R "$USERNAME":"$USERNAME" "$SSH_DIR" 2>/dev/null || true
         separator
         echo -e "${GREEN}=== Сгенерирован публичный ключ ===${NC}"
         echo "$SSH_KEY"
-        echo -e "${RED}=== Приватный ключ (сохрани его!) ===${NC}"
+        echo ""
+        echo -e "${RED}=== Приватный ключ (НИКОМУ НЕ ПОКАЗЫВАЙ) ===${NC}"
         echo "$PRIV_KEY"
         separator
+        echo -e "${CYAN}📁 Ключи сохранены:${NC}"
+        echo -e "   Приватный: $KEY_FILE"
+        echo -e "   Публичный: ${KEY_FILE}.pub"
         echo -e "${YELLOW}⚠️  Приватный ключ будет показан ещё раз в конце!${NC}"
-        rm -f "$TMP_KEY" "${TMP_KEY}.pub"
         ;;
     none)
         HAS_KEY=false
