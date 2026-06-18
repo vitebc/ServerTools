@@ -26,3 +26,6 @@ curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/add_user.sh
 chmod +x add_user.sh
 sudo ./add_user.sh
 ```
+
+
+curl -fsSL https://gist.githubusercontent.com/ваш-username/raw/install-docker.sh | sudo bash
