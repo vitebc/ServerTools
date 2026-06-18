@@ -28,5 +28,9 @@ sudo ./add_user.sh
 ```
 
 ```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install-docker.sh)"
+```
+
+```bash
 curl -fsSL https://gist.githubusercontent.com/vitebc/ServerTools/main/install-docker.sh | sudo bash
 ```
