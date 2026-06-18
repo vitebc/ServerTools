@@ -27,5 +27,6 @@ chmod +x add_user.sh
 sudo ./add_user.sh
 ```
 
-
+```bash
 curl -fsSL https://gist.githubusercontent.com/ваш-username/raw/install-docker.sh | sudo bash
+```
