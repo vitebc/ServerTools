@@ -27,10 +27,28 @@ chmod +x add_user.sh
 sudo ./add_user.sh
 ```
 
+### install-docker.sh
+
+Установка Docker
+
 ```bash
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install-docker.sh)"
 ```
 
 ```bash
 curl -fsSL https://gist.githubusercontent.com/vitebc/ServerTools/main/install-docker.sh | sudo bash
+```
+
+### security-setup.sh
+
+Установка Fail2ban и Firewall (UFW)
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/security-setup.sh)"
+```
+
+```bash
+wget https://raw.githubusercontent.com/vitebc/ServerTools/main/security-setup.sh
+chmod +x security-setup.sh
+sudo ./security-setup.sh
 ```
