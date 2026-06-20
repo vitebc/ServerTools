@@ -71,3 +71,19 @@ wget https://raw.githubusercontent.com/vitebc/ServerTools/main/ssh_setup.sh
 chmod +x security-setup.sh
 sudo ./security-setup.sh
 ```
+
+### 3x-ui-pro.sh
+
+Установка панели 3x-ui c готовым инбаундом vless reality 
+
+**Установка и запуск:**
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/3x-ui-pro.sh)" -install y
+```
+
+```bash
+wget -O 3x-ui-pro.sh https://raw.githubusercontent.com/vitebc/ServerTools/main/3x-ui-pro.sh
+chmod +x 3x-ui-pro.sh
+sudo ./3x-ui-pro.sh -install y
+```
