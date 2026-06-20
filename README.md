@@ -31,6 +31,8 @@ sudo ./add_user.sh
 
 Установка Docker
 
+**Установка и запуск:**
+
 ```bash
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install-docker.sh)"
 ```
@@ -43,12 +45,29 @@ curl -fsSL https://gist.githubusercontent.com/vitebc/ServerTools/main/install-do
 
 Установка Fail2ban и Firewall (UFW)
 
+**Установка и запуск:**
+
 ```bash
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/security-setup.sh)"
 ```
 
 ```bash
 wget https://raw.githubusercontent.com/vitebc/ServerTools/main/security-setup.sh
+chmod +x security-setup.sh
+sudo ./security-setup.sh
+```
+### ssh_setup.sh
+
+Установка не стандартного порта и отключение входа по паролю
+
+**Установка и запуск:**
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/ssh_setup.sh)"
+```
+
+```bash
+wget https://raw.githubusercontent.com/vitebc/ServerTools/main/ssh_setup.sh
 chmod +x security-setup.sh
 sudo ./security-setup.sh
 ```
