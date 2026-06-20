@@ -36,6 +36,28 @@ SSH_KEY_PATH="/root/.ssh/authorized_keys"
 SSHD_CONFIG="/etc/ssh/sshd_config"
 SSHD_CONFIG_BACKUP="/etc/ssh/sshd_config.backup.$(date +%Y%m%d_%H%M%S)"
 
+# Определение имени SSH сервиса (в Ubuntu это ssh, в некоторых дистрибутивах sshd)
+detect_ssh_service() {
+    if systemctl list-units --type=service | grep -q "ssh.service"; then
+        echo "ssh"
+    elif systemctl list-units --type=service | grep -q "sshd.service"; then
+        echo "sshd"
+    else
+        # Проверяем, какой сервис установлен
+        if [ -f /lib/systemd/system/ssh.service ] || [ -f /etc/systemd/system/ssh.service ]; then
+            echo "ssh"
+        elif [ -f /lib/systemd/system/sshd.service ] || [ -f /etc/systemd/system/sshd.service ]; then
+            echo "sshd"
+        else
+            error "Не удалось определить SSH сервис"
+            exit 1
+        fi
+    fi
+}
+
+SSH_SERVICE=$(detect_ssh_service)
+log "Определен SSH сервис: ${SSH_SERVICE}.service"
+
 # Запрос нового порта
 read -p "Введите новый порт SSH (по умолчанию 2222): " INPUT_PORT
 NEW_SSH_PORT=${INPUT_PORT:-$NEW_SSH_PORT}
@@ -159,23 +181,28 @@ fi
 
 # Настройка фаервола UFW (если установлен)
 if command -v ufw &> /dev/null; then
-    log "Настройка UFW..."
-    
-    # Получаем текущий порт SSH
-    CURRENT_SSH_PORT=$(grep -E "^Port\s+" "$SSHD_CONFIG_BACKUP" | awk '{print $2}')
-    CURRENT_SSH_PORT=${CURRENT_SSH_PORT:-22}
-    
-    # Разрешаем новый порт
-    ufw allow "$NEW_SSH_PORT"/tcp comment 'SSH'
-    log "Порт $NEW_SSH_PORT/tcp разрешен в UFW"
-    
-    # Удаляем старый порт если он отличается
-    if [ "$CURRENT_SSH_PORT" != "$NEW_SSH_PORT" ]; then
-        read -p "Удалить старый порт $CURRENT_SSH_PORT из UFW? (y/N): " REMOVE_OLD
-        if [[ "$REMOVE_OLD" =~ ^[Yy]$ ]]; then
-            ufw delete allow "$CURRENT_SSH_PORT"/tcp
-            log "Старый порт $CURRENT_SSH_PORT удален из UFW"
+    # Проверяем, активен ли UFW
+    if ufw status | grep -q "Status: active"; then
+        log "Настройка активного UFW..."
+        
+        # Получаем текущий порт SSH
+        CURRENT_SSH_PORT=$(grep -E "^Port\s+" "$SSHD_CONFIG_BACKUP" | awk '{print $2}')
+        CURRENT_SSH_PORT=${CURRENT_SSH_PORT:-22}
+        
+        # Разрешаем новый порт
+        ufw allow "$NEW_SSH_PORT"/tcp comment 'SSH'
+        log "Порт $NEW_SSH_PORT/tcp разрешен в UFW"
+        
+        # Удаляем старый порт если он отличается
+        if [ "$CURRENT_SSH_PORT" != "$NEW_SSH_PORT" ]; then
+            read -p "Удалить старый порт $CURRENT_SSH_PORT из UFW? (y/N): " REMOVE_OLD
+            if [[ "$REMOVE_OLD" =~ ^[Yy]$ ]]; then
+                ufw delete allow "$CURRENT_SSH_PORT"/tcp
+                log "Старый порт $CURRENT_SSH_PORT удален из UFW"
+            fi
         fi
+    else
+        warning "UFW установлен, но не активен. Порт $NEW_SSH_PORT не был добавлен в правила."
     fi
 elif command -v firewall-cmd &> /dev/null; then
     log "Настройка firewalld..."
@@ -187,15 +214,31 @@ else
 fi
 
 # Перезапуск SSH сервиса
-log "Перезапуск SSH сервиса..."
-systemctl restart sshd
+log "Перезапуск SSH сервиса (${SSH_SERVICE}.service)..."
+if systemctl restart "${SSH_SERVICE}.service"; then
+    log "SSH сервис успешно перезапущен"
+else
+    error "Ошибка при перезапуске ${SSH_SERVICE}.service"
+    systemctl status "${SSH_SERVICE}.service" || true
+    exit 1
+fi
 
 # Проверка, что SSH слушает новый порт
 sleep 2
-if ss -tlnp | grep -q ":$NEW_SSH_PORT"; then
-    log "SSH успешно слушает порт $NEW_SSH_PORT"
-else
-    warning "SSH может не слушать порт $NEW_SSH_PORT. Проверьте статус: systemctl status sshd"
+log "Проверка прослушиваемых портов..."
+if command -v ss &> /dev/null; then
+    if ss -tlnp | grep -q ":$NEW_SSH_PORT"; then
+        log "SSH успешно слушает порт $NEW_SSH_PORT"
+    else
+        warning "SSH может не слушать порт $NEW_SSH_PORT. Текущие прослушиваемые порты:"
+        ss -tlnp | grep ssh || echo "SSH порты не найдены"
+    fi
+elif command -v netstat &> /dev/null; then
+    if netstat -tlnp | grep -q ":$NEW_SSH_PORT"; then
+        log "SSH успешно слушает порт $NEW_SSH_PORT"
+    else
+        warning "SSH может не слушать порт $NEW_SSH_PORT"
+    fi
 fi
 
 echo ""
@@ -212,3 +255,11 @@ echo ""
 echo -e "${YELLOW}Резервная копия конфигурации: $SSHD_CONFIG_BACKUP${NC}"
 echo ""
 echo -e "${RED}НЕ ЗАКРЫВАЙТЕ ТЕКУЩУЮ SSH СЕССИЮ, пока не проверите новое подключение!${NC}"
+
+# Дополнительная проверка для Ubuntu 22.04+
+if [ -d "/etc/ssh/sshd_config.d" ]; then
+    echo ""
+    warning "Обнаружена директория /etc/ssh/sshd_config.d/"
+    warning "Проверьте, нет ли там конфликтующих конфигураций:"
+    ls -la /etc/ssh/sshd_config.d/
+fi
