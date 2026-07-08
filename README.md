@@ -82,6 +82,16 @@ sudo ./security-setup.sh
 sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install_python.sh)"
 ```
 
+### install_nodejs.sh
+
+Установка nodejs
+
+**Установка и запуск:**
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install_nodejs.sh)"
+```
+
 
 ### 3x-ui-pro.sh
 
