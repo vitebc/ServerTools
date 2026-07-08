@@ -72,6 +72,17 @@ chmod +x security-setup.sh
 sudo ./security-setup.sh
 ```
 
+### install_python.sh
+
+Установка python
+
+**Установка и запуск:**
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/vitebc/ServerTools/main/install_python.sh)"
+```
+
+
 ### 3x-ui-pro.sh
 
 Установка панели 3x-ui c готовым инбаундом vless reality 
